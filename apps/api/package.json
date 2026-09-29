@@ -1,0 +1,17 @@
+{
+  "name": "@bible/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/server.ts",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts"
+  },
+  "dependencies": {
+    "@bible/config": "*",
+    "@bible/db": "*",
+    "@bible/llm": "*",
+    "@bible/checkin": "*"
+  }
+}

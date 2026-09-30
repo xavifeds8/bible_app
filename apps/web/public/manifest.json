@@ -1,0 +1,17 @@
+{
+  "name": "Still Waters",
+  "short_name": "Still Waters",
+  "description": "Short Bible reels, comfort, and prayer — wherever you are.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#0f766e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

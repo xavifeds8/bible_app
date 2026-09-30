@@ -113,3 +113,8 @@ export function classifySafety(text: string): SafetyResult {
 export function isDistress(result: SafetyResult): boolean {
   return result.category !== "none";
 }
+
+/** True if the text contains Indic script (Devanagari, Kannada, Tamil, etc.). */
+export function hasIndicScript(text: string): boolean {
+  return /[\u0900-\u0DFF]/u.test(text);
+}

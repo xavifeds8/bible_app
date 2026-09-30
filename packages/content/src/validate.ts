@@ -14,7 +14,11 @@ const PRAYER_MAX_LINES = 5;
 const PRAYER_MAX_CHARS = 400;
 
 function words(text: string): string[] {
-  return text.toLowerCase().replace(/[^a-z\s]/g, " ").split(/\s+/).filter(Boolean);
+  return text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{M}\s]/gu, " ")
+    .split(/\s+/)
+    .filter(Boolean);
 }
 
 /** Detect verbatim scripture quoting via shared 5-gram overlap. */

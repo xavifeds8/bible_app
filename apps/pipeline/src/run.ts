@@ -1,4 +1,5 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { DeepSeekLLM, MockLLM, type LLM } from "@bible/llm";
 import { SqliteStore, type Reel, type ReelKind } from "@bible/db";
 import { loadEnv, DB_PATH, WORK_DIR, RAW_DIR, PRIMARY_TRANSLATION } from "./config.js";
@@ -8,6 +9,7 @@ import { SEED_DENYLIST, filterPassages } from "./filter.js";
 import { draftValidated } from "@bible/content";
 import { publish } from "./publish.js";
 import { ingestWeb } from "./usfm.js";
+import { parseHindiIrv, parseKannada } from "./ingestI18n.js";
 
 loadEnv();
 
@@ -29,6 +31,16 @@ function ingestWebCmd() {
   const verses = ingestWeb(RAW_DIR, "WEB");
   s.insertVerses(verses);
   console.log(`Ingested ${verses.length} WEB verses.`);
+}
+
+/** Ingest Hindi IRV + Kannada 1951 verse text. */
+function ingestI18nCmd() {
+  const s = store();
+  const hi = parseHindiIrv(JSON.parse(readFileSync(resolve(RAW_DIR, "hi_irvhin.json"), "utf-8")));
+  s.insertVerses(hi);
+  const ka = parseKannada(RAW_DIR);
+  s.insertVerses(ka);
+  console.log(`Ingested ${hi.length} Hindi (IRV) + ${ka.length} Kannada (1951) verses.`);
   console.log(`Total verses in DB: ${s.listVerses().length}`);
 }
 
@@ -170,6 +182,9 @@ function run() {
     case "ingest-web":
       ingestWebCmd();
       break;
+    case "ingest-i18n":
+      ingestI18nCmd();
+      break;
     case "draft":
       draft().catch((e) => {
         console.error(e);
@@ -189,8 +204,9 @@ function run() {
       console.log(publish(store(), new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")));
       break;
     default:
-      console.log(`Usage: pipeline <ingest-web|curate|draft|review|approve|approve-all|publish>`);
+      console.log(`Usage: pipeline <ingest-web|ingest-i18n|curate|draft|review|approve|approve-all|publish>`);
       console.log(`  ingest-web    ingest World English Bible (WEB) USFM from data/raw`);
+      console.log(`  ingest-i18n   ingest Hindi (IRV) + Kannada (1951) verse text`);
       console.log(`  curate        build passages + filter candidates per emotion`);
       console.log(`  draft         draft + validate reels via LLM (needs DEEPSEEK_API_KEY)`);
       console.log(`  review        export drafts for human review`);

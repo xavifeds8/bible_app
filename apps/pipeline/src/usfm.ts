@@ -38,9 +38,13 @@ export function cleanUsfm(raw: string): string {
   return t.replace(/\s+/g, " ").trim();
 }
 
-export function parseUsfm(content: string, translation: Translation): Verse[] {
+export function parseUsfm(
+  content: string,
+  translation: Translation,
+  bookNameOverride?: string
+): Verse[] {
   const verses: Verse[] = [];
-  let book = "";
+  let book = bookNameOverride ?? "";
   let chapter = 0;
   let curVerse: number | null = null;
   let curText = "";
@@ -64,18 +68,21 @@ export function parseUsfm(content: string, translation: Translation): Verse[] {
   };
 
   for (const line of content.split("\n")) {
-    if (line.startsWith("\\h ")) {
+    if (line.startsWith("\\h ") && !bookNameOverride) {
       book = normalizeBookName(line.slice(3).trim());
       continue;
     }
-    if (line.startsWith("\\c ")) {
+    if (line.startsWith("\\c")) {
       flush();
-      chapter = parseInt(line.slice(3).trim(), 10);
+      const m = line.match(/^\\c\s*(\d+)/);
+      if (m) chapter = parseInt(m[1], 10);
       continue;
     }
-    if (line.startsWith("\\v ")) {
+    if (line.startsWith("\\v")) {
       flush();
-      const m = line.match(/^\\v\s+(\d+)\s*(.*)$/);
+      // Handle verse ranges (e.g. "\\v 2-3", "\\v 7- 8") used by some
+      // translations: keep the first verse number, drop the "-M" suffix.
+      const m = line.match(/^\\v\s*(\d+)(?:\s*-\s*\d+)?\s?(.*)$/);
       if (m) {
         curVerse = parseInt(m[1], 10);
         curText = m[2];
@@ -90,7 +97,7 @@ export function parseUsfm(content: string, translation: Translation): Verse[] {
       } else if (/^\s/.test(line) && line.trim()) {
         curText += " " + line.trim();
       }
-      // Everything else (\\p, \\s, \\d, headings) is not verse content.
+      // Everything else (\\p, \\s, \\d, \\r, headings) is not verse content.
     }
   }
   flush();

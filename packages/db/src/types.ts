@@ -1,4 +1,4 @@
-export type Translation = "WEB" | "KJV";
+export type Translation = "WEB" | "KJV" | "HIN" | "KAN";
 
 export interface Verse {
   id: string;

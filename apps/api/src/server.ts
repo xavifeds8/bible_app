@@ -65,13 +65,15 @@ const server = createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/api/checkin") {
     try {
       const raw = await readBody(req);
-      let text = "";
+      let body: { text?: string; language?: string };
       try {
-        text = String(JSON.parse(raw).text ?? "").trim();
+        body = JSON.parse(raw);
       } catch {
         json(res, 400, { error: "invalid JSON body" });
         return;
       }
+      const text = String(body.text ?? "").trim();
+      const language = ["en", "hi", "kn"].includes(body.language ?? "") ? (body.language as "en" | "hi" | "kn") : "en";
       if (!text) {
         json(res, 400, { error: "text is required" });
         return;
@@ -81,7 +83,7 @@ const server = createServer(async (req, res) => {
         return;
       }
 
-      const result = await handleCheckin(text, store, llm);
+      const result = await handleCheckin(text, store, llm, language);
       json(res, 200, result);
     } catch (e) {
       console.error("checkin error:", e);

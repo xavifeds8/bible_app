@@ -12,6 +12,8 @@ export interface DraftOptions {
   userContext?: string;
   /** Corrective feedback from a previous rejected attempt. */
   correction?: string;
+  /** Language to write the reflection/prayer in (e.g. "Hindi", "Kannada"). */
+  language?: string;
 }
 
 const SYSTEM_PROMPT = `You are a Bible content assistant for a Christian comfort and reflection app. You receive ONE Bible passage (its reference and text) and produce a short reflection. The Bible text itself is stored in a database and rendered separately by the app.
@@ -44,9 +46,12 @@ function userPrompt(
   const correction = opts.correction
     ? `\n\nYour previous attempt was rejected: ${opts.correction}. Fix exactly these issues and try again.`
     : "";
+  const language = opts.language
+    ? `\nWrite the hook, reflection, and prayer in ${opts.language}. The verse itself is shown separately and must NOT be translated or quoted.`
+    : "";
   return `Passage reference: ${passage.verseRange}
 Passage title: ${passage.title}
-${tone}${personal}${correction}
+${tone}${personal}${correction}${language}
 
 Passage text:
 ${passage.text}`;

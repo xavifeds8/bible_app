@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { BookmarkIcon, HeartIcon, ReelsIcon, SettingsIcon } from "./Icons";
 
 const ITEMS = [
-  { href: "/feed", label: "Reels" },
-  { href: "/check-in", label: "Check-in" },
-  { href: "/saved", label: "Saved" },
-  { href: "/settings", label: "Settings" },
+  { href: "/feed", label: "Reels", Icon: ReelsIcon },
+  { href: "/check-in", label: "Check-in", Icon: HeartIcon },
+  { href: "/saved", label: "Saved", Icon: BookmarkIcon },
+  { href: "/settings", label: "Settings", Icon: SettingsIcon },
 ];
 
 export default function BottomNav() {
@@ -21,27 +22,34 @@ export default function BottomNav() {
         right: 0,
         display: "flex",
         justifyContent: "space-around",
-        padding: "0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom))",
-        background: "var(--surface)",
+        padding: "0.4rem 0 calc(0.4rem + env(safe-area-inset-bottom))",
+        background: "color-mix(in srgb, var(--surface) 82%, transparent)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
         borderTop: "1px solid var(--border)",
         zIndex: 50,
       }}
     >
-      {ITEMS.map((item) => {
-        const active = pathname === item.href;
+      {ITEMS.map(({ href, label, Icon }) => {
+        const active = pathname === href;
         return (
           <Link
-            key={item.href}
-            href={item.href}
+            key={href}
+            href={href}
             style={{
-              fontSize: "0.8rem",
-              fontWeight: 600,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.15rem",
+              padding: "0.4rem 0.9rem",
               color: active ? "var(--accent)" : "var(--muted)",
-              padding: "0.4rem 0.75rem",
-              borderRadius: 9999,
+              fontSize: "0.68rem",
+              fontWeight: 600,
+              letterSpacing: "0.02em",
             }}
           >
-            {item.label}
+            <Icon size={22} />
+            {label}
           </Link>
         );
       })}

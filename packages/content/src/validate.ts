@@ -12,6 +12,8 @@ const REFLECTION_MAX_CHARS = 220;
 const PRAYER_MIN_LINES = 3;
 const PRAYER_MAX_LINES = 5;
 const PRAYER_MAX_CHARS = 400;
+const NARRATIVE_MAX_LINES = 3;
+const NARRATIVE_MAX_CHARS = 360;
 
 function words(text: string): string[] {
   return text
@@ -59,10 +61,19 @@ export function validateDraft(passage: Passage, draft: DraftResult): ValidationR
   if (draft.prayer.length > PRAYER_MAX_CHARS)
     errors.push(`prayer too long (${draft.prayer.length} > ${PRAYER_MAX_CHARS})`);
 
+  if (draft.narrative) {
+    const narrativeLines = draft.narrative.split(/\n+/).filter(Boolean);
+    if (narrativeLines.length > NARRATIVE_MAX_LINES)
+      errors.push(`narrative has ${narrativeLines.length} lines (max ${NARRATIVE_MAX_LINES})`);
+    if (draft.narrative.length > NARRATIVE_MAX_CHARS)
+      errors.push(`narrative too long (${draft.narrative.length} > ${NARRATIVE_MAX_CHARS})`);
+  }
+
   for (const [label, text] of [
     ["hook", draft.hook],
     ["reflection", draft.reflection],
     ["prayer", draft.prayer],
+    ...(draft.narrative ? ([["narrative", draft.narrative]] as const) : []),
   ] as const) {
     if (hasVerbatimOverlap(passage.text, text))
       errors.push(`${label} quotes scripture verbatim (5-word overlap)`);

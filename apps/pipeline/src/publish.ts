@@ -13,6 +13,9 @@ export interface PublishedReel {
   hook: string;
   reflection: string;
   prayer: string;
+  narrative?: string;
+  audio?: string;
+  video?: string;
 }
 
 export interface PublishManifest {
@@ -40,6 +43,9 @@ export function publish(store: Store, version: string): PublishManifest {
       hook: r.hook,
       reflection: r.reflection,
       prayer: r.prayer,
+      narrative: r.narrative,
+      audio: `/audio/${r.id}.mp3`,
+      video: `/videos/${r.id}.mp4`,
     };
   });
 

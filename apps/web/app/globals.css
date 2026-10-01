@@ -1,26 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f7f6f2;
+  --bg: #f6f5f1;
   --surface: #ffffff;
-  --text: #1f2933;
-  --muted: #6b7280;
-  --accent: #0f766e;
-  --accent-soft: #ccfbf1;
-  --border: #e5e7eb;
-  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --text: #141b22;
+  --muted: #5c6672;
+  --accent: #0d7d72;
+  --accent-soft: #d5f4ef;
+  --border: #e6e4de;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 8px 24px -12px rgba(16, 24, 40, 0.18);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: Georgia, "Times New Roman", serif;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1220;
-    --surface: #111a2e;
-    --text: #e6edf3;
-    --muted: #93a1b0;
-    --accent: #5eead4;
-    --accent-soft: #123b37;
-    --border: #1f2937;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --bg: #080e15;
+    --surface: #101a26;
+    --text: #eaf0f6;
+    --muted: #93a2b3;
+    --accent: #4fd8c4;
+    --accent-soft: #0f3a37;
+    --border: #1d2a38;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
   }
 }
 
@@ -37,8 +39,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -48,14 +51,16 @@ h3,
 p {
   margin: 0;
 }
-
 a {
   color: inherit;
   text-decoration: none;
 }
-
 button {
   font-family: inherit;
+}
+
+.serif {
+  font-family: var(--font-serif), Georgia, serif;
 }
 
 /* ---------- Reel feed: full-screen vertical snap ---------- */
@@ -64,37 +69,131 @@ button {
   overflow-y: scroll;
   scroll-snap-type: y mandatory;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .feed::-webkit-scrollbar {
   display: none;
 }
 
 .reel-slide {
+  position: relative;
   height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  overflow: hidden;
+  isolation: isolate;
 }
 
-/* ---------- Typography helpers ---------- */
+/* ---------- Video background (reels with rendered video) ---------- */
+.reel-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  background: #000;
+}
+
+.reel-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.74) 0%,
+    rgba(0, 0, 0, 0.38) 40%,
+    rgba(0, 0, 0, 0.1) 64%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+/* Stories carry their own captions, so the scrim is light (just enough for the buttons). */
+.reel-scrim--story {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.16) 16%,
+    rgba(0, 0, 0, 0) 34%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+}
+
+/* ---------- Layered "aurora" background (per-emotion colors) ---------- */
+.aurora {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  background:
+    radial-gradient(38% 34% at 22% 26%, rgba(255, 255, 255, 0.32), transparent 70%),
+    radial-gradient(46% 40% at 82% 68%, var(--c2, #2dd4bf), transparent 72%),
+    radial-gradient(50% 44% at 60% 20%, var(--c1, #0f766e), transparent 74%);
+  filter: blur(46px) saturate(1.15);
+  animation: drift 26s ease-in-out infinite alternate;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, 3%, 0) scale(1.06);
+  }
+}
+
+.grain {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(120% 90% at 50% 30%, transparent 45%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.reel-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- Typography ---------- */
 .display {
-  font-size: 1.75rem;
-  line-height: 1.2;
-  font-weight: 700;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.7rem, 6.2vw, 2.4rem);
+  line-height: 1.16;
+  font-weight: 600;
   letter-spacing: -0.01em;
 }
 
 .verse {
-  font-size: 1.15rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.25rem, 4.8vw, 1.6rem);
   line-height: 1.55;
   font-weight: 500;
 }
 
 .prayer {
   font-size: 1rem;
-  line-height: 1.6;
+  line-height: 1.65;
   white-space: pre-line;
   font-style: italic;
   color: var(--muted);
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 /* ---------- Buttons ---------- */
@@ -104,19 +203,24 @@ button {
   justify-content: center;
   gap: 0.5rem;
   border-radius: 9999px;
-  padding: 0.75rem 1.5rem;
+  padding: 0.8rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   border: 1px solid transparent;
-  transition: transform 0.05s ease, background 0.15s ease;
+  transition: transform 0.06s ease, background 0.18s ease, opacity 0.18s ease;
 }
 .btn:active {
   transform: scale(0.97);
 }
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
 .btn-primary {
   background: var(--accent);
   color: #06251f;
+  box-shadow: 0 6px 20px -8px var(--accent);
 }
 .btn-ghost {
   background: transparent;
@@ -124,7 +228,45 @@ button {
   color: var(--text);
 }
 
+.btn-glass {
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 0.7rem 1.1rem;
+}
+.btn-glass:active {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: transform 0.06s ease, background 0.18s ease;
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+.icon-btn[data-active="true"] {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0b1220;
+}
+
+/* ---------- Chips ---------- */
 .chip {
+  display: inline-flex;
+  align-items: center;
   border-radius: 9999px;
   padding: 0.6rem 1.1rem;
   font-size: 0.95rem;
@@ -133,6 +275,10 @@ button {
   border: 1px solid var(--border);
   color: var(--text);
   cursor: pointer;
+  transition: transform 0.06s ease, background 0.18s ease, color 0.18s ease;
+}
+.chip:active {
+  transform: scale(0.97);
 }
 .chip[data-active="true"] {
   background: var(--accent);
@@ -140,42 +286,640 @@ button {
   color: #06251f;
 }
 
+/* ---------- Surfaces ---------- */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   box-shadow: var(--shadow);
 }
 
-/* ---------- Calm motion ---------- */
-@keyframes gradient-pan {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
+/* ---------- Animations ---------- */
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
-.animate-bg {
-  background-size: 200% 200%;
-  animation: gradient-pan 20s ease infinite;
+.fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger-1 {
+  animation-delay: 0.06s;
+}
+.stagger-2 {
+  animation-delay: 0.14s;
+}
+.stagger-3 {
+  animation-delay: 0.22s;
 }
 
-.fade-up {
-  animation: fade-up 0.6s ease both;
+@media (prefers-reduced-motion: reduce) {
+  .aurora,
+  .fade-up {
+    animation: none !important;
+  }
+}
+
+/* Tailwind spacing utility used by components */
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* ---------- Voice orb ---------- */
+.orb-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.orb {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+/* Soft halo behind the sphere */
+.orb::before {
+  content: "";
+  position: absolute;
+  inset: -16%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(236, 195, 124, 0.3) 0%,
+    rgba(236, 195, 124, 0.12) 42%,
+    transparent 68%
+  );
+  filter: blur(12px);
+  z-index: 0;
+  animation: orb-halo 6s ease-in-out infinite;
+}
+
+.orb-core {
+  position: relative;
+  z-index: 2;
+  width: 134px;
+  height: 134px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: #4a360f;
+  background:
+    radial-gradient(circle at 36% 30%, #fffdf6 0%, #f9e9bd 24%, #eec976 50%, #d8a84d 74%, #b07f28 100%);
+  box-shadow:
+    inset -12px -14px 26px rgba(120, 78, 18, 0.5),
+    inset 10px 12px 22px rgba(255, 255, 255, 0.55),
+    0 0 42px 6px rgba(236, 195, 124, 0.36),
+    0 0 130px 38px rgba(236, 195, 124, 0.16);
+  animation: orb-breathe 5s ease-in-out infinite;
+  transition: transform 0.15s ease;
+}
+.orb-core:active {
+  transform: scale(0.96);
+}
+.orb-core:disabled {
+  cursor: default;
+}
+
+/* Specular highlight */
+.orb-core::before {
+  content: "";
+  position: absolute;
+  top: 11%;
+  left: 17%;
+  width: 40%;
+  height: 32%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 70%);
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* Slow liquid shimmer */
+.orb-core::after {
+  content: "";
+  position: absolute;
+  inset: -35%;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.22) 38deg,
+    transparent 92deg,
+    transparent 360deg
+  );
+  mix-blend-mode: screen;
+  opacity: 0.55;
+  animation: orb-spin 16s linear infinite;
+  pointer-events: none;
+}
+
+.orb-ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid rgba(236, 195, 124, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.orb--listening .orb-ripple {
+  animation: orb-ripple 2.6s ease-out infinite;
+}
+.orb--listening .orb-ripple--2 {
+  animation-delay: 0.65s;
+}
+.orb--listening .orb-ripple--3 {
+  animation-delay: 1.3s;
+}
+.orb--listening .orb-core {
+  animation: orb-pulse 1.7s ease-in-out infinite;
+}
+.orb--speaking .orb-ripple {
+  animation: orb-ripple 2.8s ease-out infinite;
+}
+.orb--speaking .orb-ripple--2 {
+  animation-delay: 0.7s;
+}
+.orb--speaking .orb-ripple--3 {
+  animation-delay: 1.4s;
+}
+.orb--speaking .orb-core {
+  animation: orb-pulse 2.1s ease-in-out infinite;
+}
+.orb--processing .orb-core {
+  animation-duration: 6.5s;
+}
+
+.orb-stop {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: #4a360f;
+  opacity: 0.85;
+}
+
+.orb-hint {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.orb-transcript {
+  min-height: 1.5rem;
+  max-width: 22rem;
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--text);
+  text-align: center;
+  transition: opacity 0.2s ease;
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes orb-halo {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes orb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow:
+      inset -12px -14px 26px rgba(120, 78, 18, 0.5),
+      inset 10px 12px 22px rgba(255, 255, 255, 0.55),
+      0 0 42px 6px rgba(236, 195, 124, 0.4),
+      0 0 130px 38px rgba(236, 195, 124, 0.18);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow:
+      inset -12px -14px 26px rgba(120, 78, 18, 0.5),
+      inset 10px 12px 22px rgba(255, 255, 255, 0.55),
+      0 0 60px 10px rgba(236, 195, 124, 0.6),
+      0 0 180px 56px rgba(236, 195, 124, 0.28);
+  }
+}
+
+@keyframes orb-ripple {
+  0% {
+    transform: scale(0.62);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* ---------- Check-in screen (Still Waters) ---------- */
+.checkin {
+  position: relative;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  isolation: isolate;
+  /* Scoped dark palette so the fixed nav and text inherit it. */
+  --bg: #060c14;
+  --surface: #0d1724;
+  --text: #eef3f8;
+  --muted: #94a6b8;
+  --accent: #ecc37c;
+  --accent-soft: #182534;
+  --border: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  background: #060c14;
+}
+
+/* Blurred atmosphere image */
+.cx-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.cx-bg::after {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  background: url("/bg/still-waters.jpg") center 28% / cover no-repeat;
+  filter: blur(20px) saturate(1.05) brightness(0.5);
+  opacity: 0.8;
+}
+
+/* Dark veil + warm glow above the image */
+.checkin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 34% at 50% 46%, rgba(236, 195, 124, 0.1) 0%, transparent 70%),
+    linear-gradient(
+      180deg,
+      rgba(6, 12, 20, 0.7) 0%,
+      rgba(6, 12, 20, 0.5) 42%,
+      rgba(4, 8, 14, 0.9) 100%
+    );
+}
+
+.cx-state {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 30rem;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3.25rem 1.75rem calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+.cx-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+/* Brand + language */
+.cx-topbar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.cx-brand {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cx-langs {
+  display: flex;
+  gap: 0.35rem;
+}
+.cx-lang {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 9999px;
+  padding: 0.28rem 0.8rem;
+  font-size: 0.76rem;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.cx-lang[data-active="true"] {
+  border-color: rgba(236, 195, 124, 0.5);
+  color: var(--accent);
+}
+
+/* Idle */
+.cx-question {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.5rem, 6vw, 1.95rem);
+  line-height: 1.25;
+  font-weight: 500;
+  text-align: center;
+  max-width: 17rem;
+  color: #f6efe2;
+}
+.cx-hint {
+  color: var(--muted);
+  font-size: 0.88rem;
+  letter-spacing: 0.06em;
+}
+.cx-error {
+  color: #f0a6a6;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+/* Feelings */
+.cx-feelings {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+}
+.cx-feelings-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+}
+.cx-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.cx-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 9999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.cx-chip:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+/* Type fallback */
+.cx-type {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+.cx-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.7rem 1.1rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+}
+
+/* Listening */
+.cx-listening .cx-center {
+  gap: 2.25rem;
+}
+.cx-listening-label {
+  color: var(--muted);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+}
+.cx-interim {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.15rem, 5vw, 1.45rem);
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text);
+  max-width: 21rem;
+}
+.cx-finish {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 0.85rem;
+}
+
+/* Processing */
+.cx-processing-title {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.3rem, 5.5vw, 1.65rem);
+  font-weight: 500;
+  text-align: center;
+  color: #f6efe2;
+}
+.cx-processing-sub {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+  max-width: 17rem;
+}
+
+/* Conversation + prayer states */
+.cx-convo-state {
+  justify-content: center;
+  text-align: center;
+  gap: 1.35rem;
+}
+.cx-said {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.4rem, 5.6vw, 1.75rem);
+  line-height: 1.4;
+  color: #f6efe2;
+  max-width: 21rem;
+}
+.cx-headline {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.7rem, 7vw, 2.2rem);
+  line-height: 1.16;
+  font-weight: 500;
+  color: #f7f1e4;
+}
+.cx-verse {
+  font-family: var(--font-serif), Georgia, serif;
+  font-size: clamp(1.25rem, 5vw, 1.5rem);
+  line-height: 1.6;
+  color: #f2ead9;
+}
+.cx-verse--center {
+  margin: 0;
+  max-width: 23rem;
+}
+.cx-ref {
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.cx-gentle {
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--muted);
+  max-width: 22rem;
+  white-space: pre-line;
+}
+.cx-divider {
+  width: 60%;
+  height: 1px;
+  background: var(--border);
+  margin: 0.5rem 0;
+}
+
+/* Prayer prompt */
+.cx-ask {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+.cx-ask-q {
+  font-size: 1rem;
+  color: var(--text);
+}
+.cx-ask-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.cx-yes {
+  border: none;
+  border-radius: 9999px;
+  padding: 0.75rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: #241a08;
+  background: linear-gradient(180deg, #f4da9e, #e0b567);
+  box-shadow: 0 12px 30px -14px rgba(236, 195, 124, 0.75);
+}
+.cx-yes:active {
+  transform: scale(0.98);
+}
+.cx-no {
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  padding: 0.75rem 1.7rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  cursor: pointer;
+  color: var(--muted);
+  background: transparent;
+}
+.cx-no:hover {
+  color: var(--text);
+}
+
+.cx-prayer {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #e8e0ce;
+  white-space: pre-line;
+  max-width: 22rem;
+}
+.cx-listen {
+  width: 100%;
+  border: none;
+  border-radius: 9999px;
+  padding: 1.05rem;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  color: #241a08;
+  background: linear-gradient(180deg, #f4da9e, #e0b567);
+  box-shadow: 0 12px 34px -14px rgba(236, 195, 124, 0.75);
+}
+.cx-listen:active {
+  transform: scale(0.99);
+}
+.cx-secondary {
+  display: flex;
+  gap: 1.75rem;
+  margin-top: 1.4rem;
+}
+.cx-quiet {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  padding: 0.35rem 0.2rem;
+}
+.cx-quiet:hover {
+  color: var(--text);
+}
+
+.checkin .orb {
+  width: 208px;
+  height: 208px;
 }

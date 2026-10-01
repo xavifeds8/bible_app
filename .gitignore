@@ -6,3 +6,19 @@ dist/
 *.db-journal
 data/
 .DS_Store
+
+# Next.js build output
+.next/
+**/.next/
+
+# Python virtualenvs
+.venv/
+.venv-*/
+
+# Generated media (regenerable via the pipeline)
+apps/web/public/videos/
+apps/web/public/audio/
+apps/web/public/reference/
+
+# TS build info
+*.tsbuildinfo

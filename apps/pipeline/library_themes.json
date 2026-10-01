@@ -1,0 +1,22 @@
+{
+  "shepherd": ["Good Shepherd Jesus painting", "Christ carrying a lamb painting"],
+  "mother": ["Madonna and child painting", "mother holding child painting"],
+  "storm": ["Jesus calming the storm painting", "stormy sea waves painting"],
+  "journey": ["road through landscape painting", "traveler walking painting"],
+  "feast": ["banquet feast painting", "wedding feast painting"],
+  "prayer": ["Jesus praying Gethsemane painting", "hands clasped in prayer painting"],
+  "desert": ["desert wilderness painting", "barren rocky landscape painting"],
+  "crowd": ["Jesus preaching to crowd painting", "crowd of people painting"],
+  "embrace": ["father and son embrace painting", "reunion embrace painting"],
+  "light": ["sunrise over water painting", "sunbeams through clouds painting"],
+  "water": ["calm river painting", "still lake reflection painting"],
+  "cross": ["crucifixion painting", "cross on a hill painting"],
+  "angel": ["angel messenger painting", "angel with wings painting"],
+  "children": ["Jesus and the children painting", "children playing painting"],
+  "well": ["woman at the well painting", "stone water well painting"],
+  "tomb": ["empty tomb resurrection painting", "garden tomb painting"],
+  "mountain": ["mountain peak painting", "sermon on the mount painting"],
+  "sea": ["open sea painting", "fishing boat on water painting"],
+  "garden": ["garden flowers painting", "gethsemane garden painting"],
+  "city": ["ancient jerusalem painting", "old city skyline painting"]
+}

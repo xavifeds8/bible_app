@@ -5,6 +5,8 @@ export interface DraftResult {
   hook: string;
   reflection: string;
   prayer: string;
+  /** Story reels only: a short retelling in the model's own words. */
+  narrative?: string;
 }
 
 export interface DraftOptions {
@@ -88,6 +90,59 @@ export async function draftReel(
 
   if (!result.hook || !result.reflection || !result.prayer) {
     throw new Error(`Draft for "${passage.id}" missing required fields`);
+  }
+  return result;
+}
+
+const STORY_SYSTEM_PROMPT = `You help pre-curate a Bible story reel for a comfort and reflection app. You receive ONE story passage (reference + text).
+
+STRICT RULES:
+1. NEVER output scripture. Do not quote the passage or reproduce any part of the verse text.
+2. "hook" — one short line (under 90 characters) that intrigues or asks a question.
+3. "narrative" — 2 to 3 lines retelling the story in your own words (paraphrase only). Tell it plainly and warmly; do not quote the text.
+4. "reflection" — exactly 2 lines on what this story means for today.
+5. "prayer" — 3 to 5 short lines, warm, doctrinally neutral.
+6. Respond with ONLY valid JSON: {"hook": string, "narrative": string, "reflection": string, "prayer": string}. Use \\n for line breaks in "narrative".
+
+Doctrinal note: be faithful to the passage but never take sides on contested theology.`;
+
+export async function draftStory(
+  llm: LLM,
+  passage: Passage,
+  opts: DraftOptions = {}
+): Promise<DraftResult> {
+  const language = opts.language ? `\nWrite everything in ${opts.language}.` : "";
+  const correction = opts.correction
+    ? `\n\nYour previous attempt was rejected: ${opts.correction}. Fix exactly these issues and try again.`
+    : "";
+  const raw = await llm.complete(
+    [
+      { role: "system", content: STORY_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: `Passage reference: ${passage.verseRange}\nPassage title: ${passage.title}${language}${correction}\n\nPassage text:\n${passage.text}`,
+      },
+    ],
+    { json: true, temperature: 0.5 }
+  );
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(`Story draft for "${passage.id}" did not return valid JSON: ${raw.slice(0, 200)}`);
+  }
+
+  const obj = parsed as Record<string, unknown>;
+  const result: DraftResult = {
+    hook: String(obj.hook ?? "").trim(),
+    narrative: String(obj.narrative ?? "").trim(),
+    reflection: String(obj.reflection ?? "").trim(),
+    prayer: String(obj.prayer ?? "").trim(),
+  };
+
+  if (!result.hook || !result.narrative || !result.reflection || !result.prayer) {
+    throw new Error(`Story draft for "${passage.id}" missing required fields`);
   }
   return result;
 }

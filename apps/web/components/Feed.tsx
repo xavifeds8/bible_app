@@ -15,47 +15,74 @@ export default function Feed() {
 
   useEffect(() => {
     fetchReels()
-      .then((r) => setReels(r))
+      .then(setReels)
       .catch((e) => setError((e as Error).message));
     recordVisit();
   }, []);
 
   const shown = useMemo(() => {
-    if (tab === "stories") return stories(reels);
-    return reels.filter((r) => r.kind === "emotion");
+    // Review mode: only reels that have a rendered video.
+    const withVideo = reels.filter((r) => r.video);
+    return tab === "stories" ? stories(withVideo) : withVideo.filter((r) => r.kind === "emotion");
   }, [reels, tab]);
 
   if (error) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>
+      <div style={{ padding: "3rem 2rem", textAlign: "center", color: "var(--muted)" }}>
         <p>Could not load reels.</p>
-        <p style={{ fontSize: "0.85rem" }}>{error}</p>
+        <p style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>{error}</p>
       </div>
     );
   }
 
   if (reels.length === 0) {
     return (
-      <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>
-        Loading…
-      </div>
+      <div style={{ padding: "3rem 2rem", textAlign: "center", color: "var(--muted)" }}>Loading…</div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex justify-center gap-2 pt-4">
-        <button className="chip" data-active={tab === "comfort"} onClick={() => setTab("comfort")}>
-          Comfort
-        </button>
-        <button className="chip" data-active={tab === "stories"} onClick={() => setTab("stories")}>
-          Stories
-        </button>
-      </div>
-      <div className="feed flex-1">
+    <div style={{ position: "relative", height: "100dvh" }}>
+      <div className="feed">
         {shown.map((reel) => (
           <ReelCard key={reel.id} reel={reel} />
         ))}
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          top: "calc(env(safe-area-inset-top) + 0.7rem)",
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          zIndex: 40,
+          pointerEvents: "none",
+        }}
+      >
+        <div className="glass" style={{ display: "flex", gap: "0.25rem", padding: "0.25rem", borderRadius: 9999 }}>
+          {(["comfort", "stories"] as Tab[]).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              style={{
+                pointerEvents: "auto",
+                border: "none",
+                borderRadius: 9999,
+                padding: "0.45rem 1.1rem",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                background: tab === t ? "rgba(255,255,255,0.92)" : "transparent",
+                color: tab === t ? "#0b1220" : "rgba(255,255,255,0.9)",
+                textTransform: "capitalize",
+              }}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -42,6 +42,8 @@ export interface Reel {
   hook: string;
   reflection: string;
   prayer: string;
+  /** Story reels: a short retelling in the model's own words (never scripture). */
+  narrative?: string;
   status: ReelStatus;
   reviewedBy?: string;
   reviewedAt?: string;

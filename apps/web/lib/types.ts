@@ -19,6 +19,9 @@ export interface PublishedReel {
   hook: string;
   reflection: string;
   prayer: string;
+  narrative?: string;
+  audio?: string;
+  video?: string;
 }
 
 export interface CrisisResource {

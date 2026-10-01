@@ -116,6 +116,11 @@ export class SqliteStore implements Store {
         reason TEXT
       );
     `);
+
+    const reelCols = this.db.prepare("PRAGMA table_info(reels)").all() as { name: string }[];
+    if (!reelCols.some((c) => c.name === "narrative")) {
+      this.db.exec("ALTER TABLE reels ADD COLUMN narrative TEXT");
+    }
   }
 
   insertVerses(verses: Verse[]) {
@@ -182,7 +187,7 @@ export class SqliteStore implements Store {
 
   insertReels(reels: Reel[]) {
     const stmt = this.db.prepare(
-      "INSERT OR REPLACE INTO reels (id, kind, emotion_tags, passage_id, hook, reflection, prayer, status, reviewed_by, reviewed_at, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+      "INSERT OR REPLACE INTO reels (id, kind, emotion_tags, passage_id, hook, reflection, prayer, narrative, status, reviewed_by, reviewed_at, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
     this.db.exec("BEGIN");
     try {
@@ -195,6 +200,7 @@ export class SqliteStore implements Store {
           r.hook,
           r.reflection,
           r.prayer,
+          r.narrative ?? null,
           r.status,
           r.reviewedBy ?? null,
           r.reviewedAt ?? null,
@@ -323,6 +329,7 @@ export class SqliteStore implements Store {
       hook: r.hook as string,
       reflection: r.reflection as string,
       prayer: r.prayer as string,
+      narrative: (r.narrative as string | null) ?? undefined,
       status: r.status as Reel["status"],
       reviewedBy: (r.reviewed_by as string | null) ?? undefined,
       reviewedAt: (r.reviewed_at as string | null) ?? undefined,

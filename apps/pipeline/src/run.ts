@@ -6,10 +6,12 @@ import { loadEnv, DB_PATH, WORK_DIR, RAW_DIR, PRIMARY_TRANSLATION } from "./conf
 import { SEED_PASSAGES, buildPassages } from "./passages.js";
 import { EMOTIONS } from "./emotions.js";
 import { SEED_DENYLIST, filterPassages } from "./filter.js";
-import { draftValidated } from "@bible/content";
+import { draftValidated, draftStory, validateDraft } from "@bible/content";
 import { publish } from "./publish.js";
 import { ingestWeb } from "./usfm.js";
 import { parseHindiIrv, parseKannada } from "./ingestI18n.js";
+import { generateAudio } from "./tts.js";
+import { generateVideos } from "./video.js";
 
 loadEnv();
 
@@ -113,17 +115,23 @@ async function draft() {
     }
   }
 
-  // Story reels
+  // Story reels (with a narrative retelling)
   for (const passage of passages.filter((p) => p.type === "story")) {
     n++;
     try {
-      const { draft: d, validation: v } = await draftValidated(llm, passage, "story", []);
+      let d = await draftStory(llm, passage);
+      let v = validateDraft(passage, d);
+      if (!v.ok) {
+        d = await draftStory(llm, passage, { correction: v.errors.join("; ") });
+        v = validateDraft(passage, d);
+      }
       drafts.push({
         id: `${passage.id}--story`,
         kind: "story" as ReelKind,
         emotionTags: [],
         passageId: passage.id,
         hook: d.hook,
+        narrative: d.narrative,
         reflection: d.reflection,
         prayer: d.prayer,
         status: "draft",
@@ -203,6 +211,12 @@ function run() {
     case "publish":
       console.log(publish(store(), new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")));
       break;
+    case "tts":
+      generateAudio();
+      break;
+    case "video":
+      generateVideos();
+      break;
     default:
       console.log(`Usage: pipeline <ingest-web|ingest-i18n|curate|draft|review|approve|approve-all|publish>`);
       console.log(`  ingest-web    ingest World English Bible (WEB) USFM from data/raw`);
@@ -213,6 +227,8 @@ function run() {
       console.log(`  approve <ids> mark reels approved (last arg = reviewer name)`);
       console.log(`  approve-all   approve every draft`);
       console.log(`  publish       export approved reels to versioned JSON`);
+      console.log(`  tts           generate narration audio for approved reels`);
+      console.log(`  video         render MP4 reel videos (needs tts audio)`);
   }
 }
 
